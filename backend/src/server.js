@@ -1,6 +1,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
+const cors = require('cors'); // ✨ 1. IMPORT THE CORS PACKAGE
 
 // Routes
 const authroutes = require("./Routes/authroutes");
@@ -9,6 +10,7 @@ const doctorRoutes = require("./Routes/doctorRoutes");
 const appointmentRoutes = require("./Routes/appointemnetRoutes");
 const medicalRecordRoutes = require("./Routes/medicalRecordRoutes");
 const billingRoutes = require("./Routes/billingRoutes");
+
 // Load environment variables
 dotenv.config();
 
@@ -18,6 +20,7 @@ connectDB();
 const app = express();
 
 // Middleware
+app.use(cors()); // ✨ 2. USE CORS TO ALLOW REQUESTS FROM OTHER ORIGINS
 app.use(express.json());
 
 // Routes
