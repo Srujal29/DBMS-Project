@@ -5,8 +5,9 @@ body {
   font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%);
   min-height: 100vh;
+  color: #ffffff;
 }
 
 * {
@@ -18,21 +19,52 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar for dark theme */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(45deg, #1976d2 30%, #42a5f5 90%);
+  background: linear-gradient(45deg, #42a5f5 30%, #80d6ff 90%);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(45deg, #0d47a1 30%, #1976d2 90%);
+  background: linear-gradient(45deg, #2196f3 30%, #42a5f5 90%);
+}
+
+/* Dark theme specific styles */
+.MuiPaper-root {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Enhanced glassmorphism for dark theme */
+.MuiCard-root {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Dark theme dialog styling */
+.MuiDialog-paper {
+  background: rgba(26, 26, 46, 0.95) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Enhanced text contrast */
+.MuiTypography-root {
+  color: inherit;
+}
+
+/* Dark theme alert styling */
+.MuiAlert-root {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }

@@ -13,10 +13,11 @@ const Navbar = () => {
     <AppBar 
       position="static" 
       sx={{ 
-        background: 'linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+        background: 'rgba(26, 26, 46, 0.9)',
         backdropFilter: 'blur(20px)',
-        color: '#2c3e50',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+        color: '#ffffff',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
       }}
     >
       <Toolbar sx={{ justifyContent: 'space-between' }}>
@@ -25,7 +26,7 @@ const Navbar = () => {
             sx={{ 
               mr: 2, 
               fontSize: 32,
-              background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
+              background: 'linear-gradient(45deg, #42a5f5 30%, #80d6ff 90%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }} 
@@ -38,7 +39,7 @@ const Navbar = () => {
               textDecoration: 'none', 
               color: 'inherit',
               fontWeight: 700,
-              background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
+              background: 'linear-gradient(45deg, #42a5f5 30%, #80d6ff 90%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}
@@ -53,15 +54,17 @@ const Navbar = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Avatar 
                   sx={{ 
-                    background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
+                    background: 'linear-gradient(45deg, #42a5f5 30%, #80d6ff 90%)',
+                    color: '#0a0e27',
                     width: 36,
                     height: 36,
+                    fontWeight: 700,
                   }}
                 >
                   {user.username.charAt(0).toUpperCase()}
                 </Avatar>
                 <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#ffffff' }}>
                     {user.username}
                   </Typography>
                   <Chip 
@@ -69,27 +72,76 @@ const Navbar = () => {
                     size="small" 
                     color="primary" 
                     variant="outlined"
-                    sx={{ fontSize: '0.7rem', height: 20 }}
+                    sx={{ 
+                      fontSize: '0.7rem', 
+                      height: 20,
+                      borderColor: 'rgba(66, 165, 245, 0.5)',
+                      color: '#42a5f5',
+                    }}
                   />
                 </Box>
               </Box>
               
               {user.role === 'patient' && (
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button component={Link} to="/patient/my-records" color="inherit" sx={{ fontWeight: 600 }}>
+                  <Button 
+                    component={Link} 
+                    to="/patient/my-records" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      fontWeight: 600,
+                      '&:hover': {
+                        color: '#42a5f5',
+                        background: 'rgba(66, 165, 245, 0.08)',
+                      }
+                    }}
+                  >
                     My Records
                   </Button>
-                  <Button component={Link} to="/patient/find-doctors" color="inherit" sx={{ fontWeight: 600 }}>
+                  <Button 
+                    component={Link} 
+                    to="/patient/find-doctors" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      fontWeight: 600,
+                      '&:hover': {
+                        color: '#42a5f5',
+                        background: 'rgba(66, 165, 245, 0.08)',
+                      }
+                    }}
+                  >
                     Find Doctors
                   </Button>
-                  <Button component={Link} to="/patient/book-appointment" color="inherit" sx={{ fontWeight: 600 }}>
+                  <Button 
+                    component={Link} 
+                    to="/patient/book-appointment" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      fontWeight: 600,
+                      '&:hover': {
+                        color: '#42a5f5',
+                        background: 'rgba(66, 165, 245, 0.08)',
+                      }
+                    }}
+                  >
                     Book Appointment
                   </Button>
                 </Box>
               )}
               
               {user.role === 'doctor' && (
-                <Button component={Link} to="/doctor/dashboard" color="inherit" sx={{ fontWeight: 600 }}>
+                <Button 
+                  component={Link} 
+                  to="/doctor/dashboard" 
+                  sx={{ 
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    fontWeight: 600,
+                    '&:hover': {
+                      color: '#42a5f5',
+                      background: 'rgba(66, 165, 245, 0.08)',
+                    }
+                  }}
+                >
                   Dashboard
                 </Button>
               )}
@@ -100,11 +152,11 @@ const Navbar = () => {
                 startIcon={<LogoutIcon />}
                 sx={{ 
                   ml: 1,
-                  borderColor: '#dc004e',
-                  color: '#dc004e',
+                  borderColor: '#f48fb1',
+                  color: '#f48fb1',
                   '&:hover': {
-                    borderColor: '#9a0036',
-                    backgroundColor: 'rgba(220, 0, 78, 0.04)',
+                    borderColor: '#ffc1e3',
+                    backgroundColor: 'rgba(244, 143, 177, 0.08)',
                   }
                 }}
               >
@@ -113,7 +165,18 @@ const Navbar = () => {
             </>
           ) : (
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button component={Link} to="/login" color="inherit" sx={{ fontWeight: 600 }}>
+              <Button 
+                component={Link} 
+                to="/login" 
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  fontWeight: 600,
+                  '&:hover': {
+                    color: '#42a5f5',
+                    background: 'rgba(66, 165, 245, 0.08)',
+                  }
+                }}
+              >
                 Login
               </Button>
               <Button component={Link} to="/register" variant="contained">

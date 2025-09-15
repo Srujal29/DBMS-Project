@@ -3,7 +3,7 @@ import api from '../../services/api';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
     Button, TextField, Typography, Container, Paper, Box, Alert, 
-    Select, MenuItem, FormControl, InputLabel, CircularProgress, Stepper, Step, StepLabel 
+    Select, MenuItem, FormControl, InputLabel, CircularProgress 
 } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonIcon from '@mui/icons-material/Person';
@@ -41,20 +41,20 @@ const Register = () => {
                 <Paper elevation={0} sx={{ 
                     p: 6, 
                     width: '100%',
-                    background: 'rgba(255, 255, 255, 0.9)',
+                    background: 'rgba(255, 255, 255, 0.1)',
                     backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
                 }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
                         <Box sx={{ 
                             p: 2, 
                             borderRadius: '50%', 
-                            background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
+                            background: 'linear-gradient(45deg, #42a5f5 30%, #80d6ff 90%)',
                             mb: 2 
                         }}>
-                            <PersonAddIcon sx={{ color: 'white', fontSize: 32 }} />
+                            <PersonAddIcon sx={{ color: '#0a0e27', fontSize: 32 }} />
                         </Box>
-                        <Typography component="h1" variant="h4" sx={{ fontWeight: 700 }}>
+                        <Typography component="h1" variant="h4" sx={{ fontWeight: 700, color: '#ffffff' }}>
                             Join HealthApp
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -85,8 +85,24 @@ const Register = () => {
                         </Box>
                         
                         <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
-                            <InputLabel>Role</InputLabel>
-                            <Select value={formData.role} label="Role" name="role" onChange={handleChange}>
+                            <InputLabel sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Role</InputLabel>
+                            <Select 
+                                value={formData.role} 
+                                label="Role" 
+                                name="role" 
+                                onChange={handleChange}
+                                sx={{
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: 'rgba(255, 255, 255, 0.3)',
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: 'rgba(66, 165, 245, 0.5)',
+                                    },
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: '#42a5f5',
+                                    },
+                                }}
+                            >
                                 <MenuItem value="patient">Patient</MenuItem>
                                 <MenuItem value="doctor">Doctor</MenuItem>
                             </Select>
@@ -169,7 +185,7 @@ const Register = () => {
                             }}
                         >
                             {loading ? (
-                                <CircularProgress size={24} sx={{ color: 'white' }} />
+                                <CircularProgress size={24} sx={{ color: '#0a0e27' }} />
                             ) : (
                                 'Create Account'
                             )}
@@ -181,7 +197,7 @@ const Register = () => {
                                 <Link 
                                     to="/login" 
                                     style={{ 
-                                        color: '#1976d2',
+                                        color: '#42a5f5',
                                         textDecoration: 'none',
                                         fontWeight: 600,
                                     }}

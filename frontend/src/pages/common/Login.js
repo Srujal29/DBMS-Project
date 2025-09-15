@@ -34,20 +34,20 @@ const Login = () => {
                 <Paper elevation={0} sx={{ 
                     p: 6, 
                     width: '100%',
-                    background: 'rgba(255, 255, 255, 0.9)',
+                    background: 'rgba(255, 255, 255, 0.1)',
                     backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
                 }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
                         <Box sx={{ 
                             p: 2, 
                             borderRadius: '50%', 
-                            background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
+                            background: 'linear-gradient(45deg, #42a5f5 30%, #80d6ff 90%)',
                             mb: 2 
                         }}>
-                            <LoginIcon sx={{ color: 'white', fontSize: 32 }} />
+                            <LoginIcon sx={{ color: '#0a0e27', fontSize: 32 }} />
                         </Box>
-                        <Typography component="h1" variant="h4" sx={{ fontWeight: 700 }}>
+                        <Typography component="h1" variant="h4" sx={{ fontWeight: 700, color: '#ffffff' }}>
                             Welcome Back
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -107,7 +107,7 @@ const Login = () => {
                             }}
                         >
                             {loading ? (
-                                <CircularProgress size={24} sx={{ color: 'white' }} />
+                                <CircularProgress size={24} sx={{ color: '#0a0e27' }} />
                             ) : (
                                 'Sign In'
                             )}
@@ -119,7 +119,7 @@ const Login = () => {
                                 <Link 
                                     to="/register" 
                                     style={{ 
-                                        color: '#1976d2',
+                                        color: '#42a5f5',
                                         textDecoration: 'none',
                                         fontWeight: 600,
                                     }}
