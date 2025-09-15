@@ -7,15 +7,25 @@ const Doctor = require("../models/Doctor");
 // register
 exports.register = async (req, res) => {
   try {
-    const { username, password, role, name, age, gender, contact, specialization, experience } = req.body;
+    const { username, password, role, name, gender, contact, dob, address, specialization } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     let refDoc;
     if (role === "patient") {
-      refDoc = await Patient.create({ name, age, gender, contact });
+      refDoc = await Patient.create({ 
+        name, 
+        gender, 
+        contact_no: contact,
+        dob: dob,
+        address: address 
+      });
     } else if (role === "doctor") {
-      refDoc = await Doctor.create({ name, specialization, experience, contact });
+      refDoc = await Doctor.create({ 
+        name, 
+        specialization, 
+        contact_no: contact
+      });
     }
 
     const newUser = await User.create({
@@ -51,7 +61,7 @@ exports.login = async (req, res) => {
   }
 };
 
-// logout (frontend side ka kaam hota hai, backend me bas token invalidate karna hota hai)
+// logout
 exports.logout = (req, res) => {
   res.json({ message: "Logout successful (remove token from client)" });
 };

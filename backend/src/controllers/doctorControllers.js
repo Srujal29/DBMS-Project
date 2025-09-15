@@ -11,13 +11,16 @@ exports.getMyPatients = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const doctor = await Doctor.findById(user.refId);
-    if (!doctor) return res.status(404).json({ message: "Doctor record not found" });
+    if (!doctor)
+      return res.status(404).json({ message: "Doctor record not found" });
 
-    const appointments = await Appointment.find({ doctor_id: doctor._id }).populate("patient_id");
+    const appointments = await Appointment.find({
+      doctor_id: doctor._id,
+    }).populate("patient_id");
 
     const patientSet = new Set();
     const patients = [];
-    appointments.forEach(app => {
+    appointments.forEach((app) => {
       if (app.patient_id && !patientSet.has(app.patient_id._id.toString())) {
         patientSet.add(app.patient_id._id.toString());
         patients.push(app.patient_id);
@@ -36,14 +39,16 @@ exports.getPatientHistory = async (req, res) => {
     const { patientId } = req.params; // doctor passes patientId in URL
 
     const user = await User.findById(req.user.id);
-    if (!user || user.role !== "doctor") return res.status(403).json({ message: "Unauthorized" });
+    if (!user || user.role !== "doctor")
+      return res.status(403).json({ message: "Unauthorized" });
 
     const doctor = await Doctor.findById(user.refId);
-    if (!doctor) return res.status(404).json({ message: "Doctor record not found" });
+    if (!doctor)
+      return res.status(404).json({ message: "Doctor record not found" });
 
     const records = await MedicalRecord.find({
       doctor_id: doctor._id,
-      patient_id: patientId
+      patient_id: patientId,
     })
       .populate("appointment_id", "date time reason status")
       .populate("patient_id", "name age gender contact");
@@ -51,5 +56,17 @@ exports.getPatientHistory = async (req, res) => {
     res.json({ records });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+// ✨ NEW FUNCTION ADDED
+// Get a public list of all doctors for the "Find a Doctor" page
+exports.listAllDoctors = async (req, res) => {
+  try {
+    // We select only the _id, name, and specialization to send to the frontend
+    const doctors = await Doctor.find({}, "_id name specialization");
+    res.json({ doctors });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch doctors." });
   }
 };

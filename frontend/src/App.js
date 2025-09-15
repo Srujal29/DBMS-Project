@@ -13,6 +13,7 @@ import Register from './pages/common/Register';
 import PatientDashboard from './pages/patient/PatientDashboard';
 import MyRecords from './pages/patient/MyRecords';
 import BookAppointment from './pages/patient/BookAppointment';
+import FindDoctors from './pages/patient/FindDoctors';
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import ErrorIcon from '@mui/icons-material/Error';
 
@@ -33,6 +34,7 @@ function App() {
                   <Route path="/patient/dashboard" element={<PatientDashboard />} />
                   <Route path="/patient/my-records" element={<MyRecords />} />
                   <Route path="/patient/book-appointment" element={<BookAppointment />} />
+                  <Route path="/patient/find-doctors" element={<FindDoctors />} />
                 </Route>
                 <Route element={<RoleBasedRoute allowedRoles={['doctor']} />}>
                   <Route path="/doctor/dashboard" element={<DoctorDashboard />} />

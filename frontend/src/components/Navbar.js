@@ -79,6 +79,9 @@ const Navbar = () => {
                   <Button component={Link} to="/patient/my-records" color="inherit" sx={{ fontWeight: 600 }}>
                     My Records
                   </Button>
+                  <Button component={Link} to="/patient/find-doctors" color="inherit" sx={{ fontWeight: 600 }}>
+                    Find Doctors
+                  </Button>
                   <Button component={Link} to="/patient/book-appointment" color="inherit" sx={{ fontWeight: 600 }}>
                     Book Appointment
                   </Button>

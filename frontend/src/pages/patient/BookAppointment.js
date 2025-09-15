@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
 import api from '../../services/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
     Button, TextField, Typography, Container, Paper, Box, Alert, 
-    CircularProgress, Stepper, Step, StepLabel 
+    CircularProgress, Chip
 } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PersonIcon from '@mui/icons-material/Person';
 import NotesIcon from '@mui/icons-material/Notes';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 
 const BookAppointment = () => {
-    const [formData, setFormData] = useState({ doctorId: '', date: '', time: '', reason: '' });
+    const location = useLocation();
+    const selectedDoctor = location.state?.selectedDoctor;
+    
+    const [formData, setFormData] = useState({ 
+        doctorId: selectedDoctor?._id || '', 
+        date: '', 
+        time: '', 
+        reason: '' 
+    });
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -29,8 +38,8 @@ const BookAppointment = () => {
         
         try {
             await api.post('/appointment/book', formData);
-            setMessage('Appointment booked successfully!');
-            setTimeout(() => navigate('/patient/dashboard'), 2000);
+            setMessage('Appointment request submitted successfully! The doctor will review your request.');
+            setTimeout(() => navigate('/patient/dashboard'), 3000);
         } catch (err) {
             setError('Failed to book appointment. Please try again.');
         } finally {
@@ -65,21 +74,54 @@ const BookAppointment = () => {
                         </Typography>
                     </Box>
                     
-                    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-                        <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
-                            <TextField
-                                required
-                                fullWidth
-                                label="Doctor ID"
-                                name="doctorId"
-                                onChange={handleChange}
-                                placeholder="Enter doctor's ID"
-                                InputProps={{
-                                    startAdornment: <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                                }}
-                                sx={{ flex: 1 }}
-                            />
+                    {selectedDoctor && (
+                        <Box sx={{ 
+                            mb: 4, 
+                            p: 3, 
+                            bgcolor: 'primary.light', 
+                            borderRadius: 3,
+                            border: '1px solid rgba(25, 118, 210, 0.2)'
+                        }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <MedicalServicesIcon sx={{ mr: 2, color: 'primary.dark' }} />
+                                <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.dark' }}>
+                                    Selected Doctor
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Typography variant="body1" sx={{ fontWeight: 600, color: 'white' }}>
+                                    Dr. {selectedDoctor.name}
+                                </Typography>
+                                <Chip 
+                                    label={selectedDoctor.specialization} 
+                                    size="small"
+                                    sx={{ 
+                                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                        color: 'primary.dark',
+                                        fontWeight: 600
+                                    }}
+                                />
+                            </Box>
                         </Box>
+                    )}
+                    
+                    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+                        {!selectedDoctor && (
+                            <Box sx={{ mb: 3 }}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    label="Doctor ID"
+                                    name="doctorId"
+                                    value={formData.doctorId}
+                                    onChange={handleChange}
+                                    placeholder="Enter doctor's ID"
+                                    InputProps={{
+                                        startAdornment: <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                                    }}
+                                />
+                            </Box>
+                        )}
                         
                         <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
                             <TextField
@@ -151,10 +193,10 @@ const BookAppointment = () => {
                             {loading ? (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                     <CircularProgress size={20} sx={{ color: 'white' }} />
-                                    Booking Appointment...
+                                    Submitting Request...
                                 </Box>
                             ) : (
-                                'Book Appointment'
+                                'Submit Appointment Request'
                             )}
                         </Button>
                     </Box>

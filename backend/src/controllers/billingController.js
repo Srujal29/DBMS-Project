@@ -5,12 +5,12 @@ const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
 
-
 // 🔹 Generate invoice after appointment completion
 exports.generateInvoice = async (req, res) => {
   try {
-   const { amount } = req.body;
-const appointmentId = req.params.appointmentId;
+    const { amount } = req.body;
+    const appointmentId = req.params.id;
+
     const appointment = await Appointment.findById(appointmentId);
     if (!appointment) return res.status(404).json({ message: "Appointment not found" });
 
@@ -38,7 +38,7 @@ const appointmentId = req.params.appointmentId;
 exports.updatePaymentStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const { id } = req.params;  // get billingId from URL
+    const { id } = req.params;
 
     const billing = await Billing.findById(id);
     if (!billing) return res.status(404).json({ message: "Billing record not found" });
@@ -47,7 +47,8 @@ exports.updatePaymentStatus = async (req, res) => {
     await billing.save();
 
     res.json({ message: "Payment status updated", billing });
-  } catch (err) {
+  } catch (err)
+ {
     res.status(500).json({ error: err.message });
   }
 };
@@ -64,22 +65,18 @@ exports.verifyInsurance = async (req, res) => {
     const insurance = await Insurance.findById(insuranceId);
     if (!insurance) return res.status(404).json({ message: "Insurance record not found" });
 
-    // Check if insurance belongs to same patient
     if (insurance.patient_id.toString() !== billing.patient_id._id.toString()) {
       return res.status(403).json({ message: "Insurance does not belong to this patient" });
     }
 
-    // Check if insurance is valid
     if (new Date(insurance.valid_till) < new Date()) {
       return res.status(400).json({ message: "Insurance expired" });
     }
 
-    // Check coverage
     if (insurance.used_amount + billing.amount > insurance.coverage_limit) {
       return res.status(400).json({ message: "Coverage limit exceeded" });
     }
-
-    // Deduct from insurance
+    
     insurance.used_amount += billing.amount;
     await insurance.save();
 
@@ -94,6 +91,7 @@ exports.verifyInsurance = async (req, res) => {
 };
 
 
+// 🔹 Download invoice PDF
 exports.downloadInvoice = async (req, res) => {
   try {
     const { id } = req.params;
@@ -105,30 +103,35 @@ exports.downloadInvoice = async (req, res) => {
 
     if (!billing) return res.status(404).json({ message: "Invoice not found" });
 
-    // Create a PDF
     const doc = new PDFDocument();
-    const filePath = path.join(__dirname, `../invoices/invoice_${billing._id}.pdf`);
+    
+    // Check if the 'invoices' directory exists, if not, create it.
+    const invoicesDir = path.join(__dirname, '../invoices');
+    if (!fs.existsSync(invoicesDir)){
+        fs.mkdirSync(invoicesDir, { recursive: true });
+    }
+    const filePath = path.join(invoicesDir, `invoice_${billing._id}.pdf`);
 
-    // Pipe the PDF to a file and also send to client
-    doc.pipe(fs.createWriteStream(filePath));
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename=invoice_${billing._id}.pdf`);
+    
+    doc.pipe(fs.createWriteStream(filePath));
     doc.pipe(res);
 
-    // PDF Content
     doc.fontSize(20).text("Medical Invoice", { align: "center" });
     doc.moveDown();
 
     doc.fontSize(14).text(`Invoice ID: ${billing._id}`);
     doc.text(`Patient: ${billing.patient_id.name}`);
     doc.text(`Doctor: ${billing.doctor_id.name}`);
-    doc.text(`Appointment Date: ${billing.appointment_id.date}`);
+    doc.text(`Appointment Date: ${new Date(billing.appointment_id.date).toLocaleDateString()}`);
     doc.text(`Amount: ₹${billing.amount}`);
     doc.text(`Status: ${billing.status}`);
 
     doc.end();
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("DOWNLOAD INVOICE ERROR:", err);
+    res.status(500).json({ error: "Failed to download invoice." });
   }
 };
