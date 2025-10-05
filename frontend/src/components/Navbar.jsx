@@ -134,7 +134,7 @@ const Navbar = () => {
               component="div"
               sx={{ flexGrow: 1, fontWeight: 600 }}
             >
-              Hospital Management System
+              MediTrack Pro
             </Typography>
             <Button color="inherit" onClick={() => navigate('/login')}>
               Login
@@ -179,7 +179,7 @@ const Navbar = () => {
               component="div"
               sx={{ flexGrow: 1, fontWeight: 600 }}
             >
-              HMS - {getRoleDisplay()}
+              MediTrack Pro - {getRoleDisplay()}
             </Typography>
 
             {!isMobile && (

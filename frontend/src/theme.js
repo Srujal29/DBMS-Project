@@ -1,50 +1,42 @@
 import { createTheme } from '@mui/material/styles';
 
-// A custom theme for this app
+// A custom dark theme with a teal and gold palette, using Playfair Display and PT Sans fonts.
 const theme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: 'dark', // Set the theme to dark mode
     primary: {
-      main: '#64b5f6', // A light, friendly blue
-      light: '#9be7ff',
-      dark: '#2286c3',
-      contrastText: 'rgba(0, 0, 0, 0.87)',
+      main: '#00A79D', // Vibrant Teal for buttons and highlights
+      contrastText: '#ffffff',
     },
     secondary: {
-      main: '#ce93d8', // A soft purple
-      light: '#ffc4ff',
-      dark: '#9c64a6',
-      contrastText: 'rgba(0, 0, 0, 0.87)',
+      main: '#D4AC2B', // Warm Yellow/Gold Accent
     },
     background: {
-      default: '#1a2027', // A very dark, slightly blue-ish color
-      paper: '#272f3a', // A lighter dark blue for cards and surfaces
+      default: '#1D2A35', // Dark slate background
+      paper: '#273441',   // Slightly lighter background for cards and papers
     },
     text: {
-      primary: '#e0e0e0', // Light grey for primary text
-      secondary: '#b0bec5', // A softer grey for secondary text
+      primary: '#E0E0E0',   // Light grey for primary text
+      secondary: '#A0A0A0', // Dimmer grey for secondary text
     },
-    success: {
-      main: '#81c784',
-    },
-    warning: {
-      main: '#ffb74d',
-    },
-    error: {
-      main: '#e57373',
-    },
+    divider: 'rgba(255, 255, 255, 0.12)',
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h4: {
-      fontWeight: 600,
-    },
-    h5: {
-      fontWeight: 600,
-    },
-    h6: {
-      fontWeight: 600,
-    },
+    // Body font
+    fontFamily: '"PT Sans", "Roboto", "Helvetica", "Arial", sans-serif',
+    
+    // Headline font
+    h1: { fontFamily: '"Playfair Display", serif', fontWeight: 700 },
+    h2: { fontFamily: '"Playfair Display", serif', fontWeight: 700 },
+    h3: { fontFamily: '"Playfair Display", serif', fontWeight: 700 },
+    h4: { fontFamily: '"Playfair Display", serif', fontWeight: 700 },
+    h5: { fontFamily: '"Playfair Display", serif', fontWeight: 700 },
+    h6: { fontFamily: '"Playfair Display", serif', fontWeight: 700 },
+
+    button: {
+        textTransform: 'none',
+        fontWeight: 700,
+    }
   },
   shape: {
     borderRadius: 8,
@@ -53,26 +45,20 @@ const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundImage: 'none', // Override MUI's default paper gradient in dark mode
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none',
-          fontWeight: 500,
-        },
-      },
+          backgroundImage: 'none', // Important for dark mode
+        }
+      }
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        },
-      },
+          border: '1px solid rgba(255, 255, 255, 0.12)', // A light border for cards in dark mode
+          boxShadow: 'none',
+        }
+      }
     },
   },
 });
 
 export default theme;
+
