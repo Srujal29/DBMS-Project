@@ -12,7 +12,7 @@ const medicalRecordRoutes = require("./Routes/medicalRecordRoutes");
 const billingRoutes = require("./Routes/billingRoutes");
 // REMOVED: const documentRoutes = require('./Routes/documentRoutes'); - No longer needed
 const adminRoutes = require('./Routes/adminRoutes');
-
+const aiRoutes = require('./Routes/aiRoutes');
 // Load environment variables
 dotenv.config();
 
@@ -36,6 +36,7 @@ app.use("/api/appointment", appointmentRoutes);
 app.use("/api/medical-record", medicalRecordRoutes);
 app.use("/api/billing", billingRoutes);
 app.use('/api/admin', adminRoutes); 
+app.use('/api/ai', aiRoutes);
 // REMOVED: app.use('/api/documents', documentRoutes); - This is now handled by patientRoutes
 
 // Root endpoint

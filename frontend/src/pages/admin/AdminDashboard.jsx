@@ -29,6 +29,8 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import AIInsights from './AIInsights'; // Assuming this path is correct
+import FinancialAnomalies from './FinancialAnomalies'; // 1. IMPORT ADDED
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -54,7 +56,6 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       const response = await api.get('/admin/dashboard-stats');
-      // CORRECTED: The backend sends stats directly, not nested.
       setStats(response.data.stats || {
         totalPatients: 0,
         totalDoctors: 0,
@@ -96,7 +97,7 @@ const AdminDashboard = () => {
         sx={{
           p: 4,
           mb: 4,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #4354b2 0%, #6e4ba2 100%)',
           color: 'white',
         }}
       >
@@ -188,7 +189,7 @@ const AdminDashboard = () => {
                 <AttachMoney sx={{ fontSize: 40, color: 'success.main', mr: 2 }} />
                 <Box>
                   <Typography variant="h4" fontWeight={600} color="success.main">
-                    ${stats.totalRevenue.toLocaleString()}
+                    ${(stats.totalRevenue || 0).toLocaleString()}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Total Revenue
@@ -200,6 +201,16 @@ const AdminDashboard = () => {
               </Button>
             </CardContent>
           </Card>
+        </Grid>
+      </Grid>
+      
+      {/* 2. AI INSIGHTS & ANOMALIES SECTION ADDED */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} md={6}>
+            <AIInsights />
+        </Grid>
+        <Grid item xs={12} md={6}>
+            <FinancialAnomalies />
         </Grid>
       </Grid>
 
@@ -351,3 +362,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+

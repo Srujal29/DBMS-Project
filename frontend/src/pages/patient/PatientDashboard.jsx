@@ -24,6 +24,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import AppointmentCard from '../../components/AppointmentCard';
+import PreventativeCare from './PreventativeCare'; // 1. IMPORT ADDED
 
 const PatientDashboard = () => {
   const { user } = useAuth();
@@ -45,10 +46,8 @@ const PatientDashboard = () => {
         api.get('/appointment/my-patient-appointments'),
       ]);
 
-      // The backend wraps the data in an object, so we need to access the correct property.
       setProfile(profileRes.data.profile);
       setAppointments(appointmentsRes.data.appointments);
-
       setError('');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load dashboard data');
@@ -86,7 +85,7 @@ const PatientDashboard = () => {
         sx={{
           p: 4,
           mb: 4,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #4354b2 0%, #6e4ba2 100%)',
           color: 'white',
         }}
       >
@@ -104,12 +103,15 @@ const PatientDashboard = () => {
         </Alert>
       )}
 
+      {/* 2. PREVENTATIVE CARE COMPONENT ADDED */}
+      <PreventativeCare />
+
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid xs={12} md={4}>
+        <Grid item xs={12} md={4}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <Pending sx={{ fontSize: 40, color: '#1976d2', mr: 2 }} />
+                <Pending sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
                 <Box>
                   <Typography variant="h4" fontWeight={600}>
                     {upcomingAppointments.length}
@@ -123,11 +125,11 @@ const PatientDashboard = () => {
           </Card>
         </Grid>
 
-        <Grid xs={12} md={4}>
+        <Grid item xs={12} md={4}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <CheckCircle sx={{ fontSize: 40, color: '#4caf50', mr: 2 }} />
+                <CheckCircle sx={{ fontSize: 40, color: 'success.main', mr: 2 }} />
                 <Box>
                   <Typography variant="h4" fontWeight={600}>
                     {completedAppointments.length}
@@ -141,11 +143,11 @@ const PatientDashboard = () => {
           </Card>
         </Grid>
 
-        <Grid xs={12} md={4}>
+        <Grid item xs={12} md={4}>
          <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <MedicalServices sx={{ fontSize: 40, color: '#ff9800', mr: 2 }} />
+                <MedicalServices sx={{ fontSize: 40, color: 'secondary.main', mr: 2 }} />
                 <Box>
                   <Typography variant="h4" fontWeight={600}>
                     {appointments.length}
@@ -219,7 +221,7 @@ const PatientDashboard = () => {
         ) : (
           <Grid container spacing={2}>
             {appointments.slice(0, 3).map((appointment) => (
-              <Grid xs={12} key={appointment._id}>
+              <Grid item xs={12} key={appointment._id}>
                 <AppointmentCard
                   appointment={appointment}
                   onAction={() => navigate('/patient/appointments')}
