@@ -11,3 +11,6 @@ router.post("/verify-insurance", protect, checkRole(["doctor", "admin"]), verify
 router.get("/:id/download", protect, checkRole(["doctor", "admin"]), downloadInvoice);
 
 module.exports = router;
+
+
+

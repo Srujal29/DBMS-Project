@@ -15,3 +15,15 @@ exports.getMyProfile = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.getPatientById = async (req, res) => {
+  try {
+    const patient = await Patient.findById(req.params.patientId);
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+    res.json({ patient });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

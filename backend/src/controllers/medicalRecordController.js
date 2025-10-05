@@ -84,3 +84,21 @@ exports.getMyRecords = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.getRecordByAppointment = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const record = await MedicalRecord.findOne({ appointment_id: appointmentId });
+
+    // If no record is found, it simply means one hasn't been created yet.
+    // We send back null instead of a 404 error.
+    if (!record) {
+      return res.json({ record: null });
+    }
+
+    res.json({ record });
+  } catch (err) {
+    console.error("GET RECORD BY APPOINTMENT ERROR:", err);
+    res.status(500).json({ error: "An unexpected error occurred." });
+  }
+};
