@@ -2,9 +2,8 @@ import React from 'react';
 import { Box } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import Header from './Header';
 
-const drawerWidth = 260;
+const drawerWidth = 260; // This should match the width defined in your Sidebar.jsx
 
 const Layout = () => {
   return (
@@ -19,7 +18,7 @@ const Layout = () => {
           bgcolor: 'background.default'
         }}
       >
-        <Header />
+        {/* The Outlet is where your page components (e.g., Dashboard) will be rendered */}
         <Outlet /> 
       </Box>
     </Box>

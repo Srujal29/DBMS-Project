@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import {
-  Container,
   Paper,
   TextField,
   Button,
   Typography,
   Box,
   Alert,
-  Link,
+  Link as MuiLink,
   InputAdornment,
   IconButton,
+  CircularProgress,
+  Grid,
 } from '@mui/material';
-import { Visibility, VisibilityOff, LocalHospital } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import MonitorHeart from '@mui/icons-material/MonitorHeart';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -43,7 +45,6 @@ const Login = () => {
     try {
       const data = await login(formData.username, formData.password);
       
-      // Redirect based on role
       if (data.user.role === 'patient') {
         navigate('/patient/dashboard');
       } else if (data.user.role === 'doctor') {
@@ -51,116 +52,160 @@ const Login = () => {
       } else if (data.user.role === 'admin') {
         navigate('/admin/dashboard');
       } else {
-        setError('Invalid user role');
+        navigate('/');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box
-        sx={{
-          minHeight: '80vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          py: 4,
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        bgcolor: 'background.default',
+      }}
+    >
+      <Paper 
+        elevation={6} 
+        sx={{ 
+            maxWidth: 1000, 
+            width: '100%', 
+            display: 'flex', 
+            borderRadius: 2, 
+            overflow: 'hidden',
+            flexDirection: { xs: 'column', md: 'row' } 
         }}
       >
-        <Paper
-          elevation={3}
+        {/* Left Side: Login Form */}
+        <Box
           sx={{
-            p: 4,
-            width: '100%',
-            borderRadius: 2,
+            p: { xs: 3, sm: 5 },
+            width: { xs: '100%', md: '50%' }, 
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
-          <Box sx={{ textAlign: 'center', mb: 3 }}>
-            <LocalHospital sx={{ fontSize: 60, color: 'primary.main', mb: 1 }} />
-            <Typography variant="h4" component="h1" gutterBottom fontWeight={600}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              width: '100%',
+            }}
+          >
+            <MonitorHeart sx={{ color: 'primary.main', fontSize: 48, mb: 2 }} />
+            <Typography component="h1" variant="h4">
               Welcome Back
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography color="text.secondary" sx={{ mt: 1, mb: 3 }}>
               Sign in to access your account
             </Typography>
-          </Box>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+            {error && (
+              <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+                {error}
+              </Alert>
+            )}
 
-          <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              label="Username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              margin="normal"
-              required
-              autoComplete="username"
-              autoFocus
-            />
-
-            <TextField
-              fullWidth
-              label="Password"
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              value={formData.password}
-              onChange={handleChange}
-              margin="normal"
-              required
-              autoComplete="current-password"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              size="large"
-              disabled={loading}
-              sx={{ mt: 3, mb: 2, py: 1.5 }}
-            >
-              {loading ? 'Signing In...' : 'Sign In'}
-            </Button>
-
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
-                Don't have an account?{' '}
-                <Link
-                  component="button"
-                  variant="body2"
-                  onClick={() => navigate('/register')}
-                  sx={{ cursor: 'pointer', textDecoration: 'none' }}
-                >
-                  Register
-                </Link>
-              </Typography>
+            <Box component="form" noValidate onSubmit={handleSubmit} sx={{ width: '100%' }}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="username"
+                label="Username"
+                name="username"
+                autoComplete="username"
+                autoFocus
+                value={formData.username}
+                onChange={handleChange}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                autoComplete="current-password"
+                value={formData.password}
+                onChange={handleChange}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                disabled={loading}
+                sx={{ mt: 3, mb: 2, py: 1.5 }}
+              >
+                {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
+              </Button>
+              <Grid container justifyContent="center">
+                <Grid item>
+                  <MuiLink component={Link} to="/register" variant="body2">
+                    {"Don't have an account? Register"}
+                  </MuiLink>
+                </Grid>
+              </Grid>
             </Box>
-          </form>
-        </Paper>
-      </Box>
-    </Container>
+          </Box>
+        </Box>
+        
+        {/* Right Side: Image and Text Section */}
+        <Box
+          sx={{
+              display: { xs: 'none', md: 'flex' }, 
+              width: '50%', 
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: 4,
+          }}
+        >
+            <Box
+              component="img"
+              sx={{
+                height: 300,
+                width: 300,
+                objectFit: 'contain',
+                mb: 4,
+              }}
+              alt="Online Doctor Consultation"
+              src="/login.png" // UPDATED: Direct path to the image in the public folder
+            />
+            <Typography variant="h5" align="center" fontWeight={600}>
+              Your Health, Connected
+            </Typography>
+            <Typography variant="body1" align="center" sx={{ mt: 1, opacity: 0.8 }}>
+                Access your appointments, medical records, and more, all in one secure place.
+            </Typography>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 
 export default Login;
+

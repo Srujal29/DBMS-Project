@@ -1,25 +1,24 @@
 import { createTheme } from '@mui/material/styles';
 
-// A custom dark theme with a teal and gold palette, using Playfair Display and PT Sans fonts.
+// The light theme with a teal and gold palette, using Playfair Display and PT Sans fonts.
 const theme = createTheme({
   palette: {
-    mode: 'dark', // Set the theme to dark mode
+    mode: 'light', // Set the theme to light mode
     primary: {
-      main: '#00A79D', // Vibrant Teal for buttons and highlights
+      main: '#008080', // Strong Teal
       contrastText: '#ffffff',
     },
     secondary: {
       main: '#D4AC2B', // Warm Yellow/Gold Accent
     },
     background: {
-      default: '#1D2A35', // Dark slate background
-      paper: '#273441',   // Slightly lighter background for cards and papers
+      default: '#E2F8F5', // Very light, slightly green-tinted background
+      paper: '#F3FCFA',   // Slightly off-white for cards
     },
     text: {
-      primary: '#E0E0E0',   // Light grey for primary text
-      secondary: '#A0A0A0', // Dimmer grey for secondary text
+      primary: '#003D3D',   // Very dark blue for primary text
+      secondary: '#006060', // A slightly lighter dark blue for secondary text
     },
-    divider: 'rgba(255, 255, 255, 0.12)',
   },
   typography: {
     // Body font
@@ -42,21 +41,21 @@ const theme = createTheme({
     borderRadius: 8,
   },
   components: {
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          backgroundImage: 'none', // Important for dark mode
-        }
-      }
-    },
     MuiCard: {
       styleOverrides: {
         root: {
-          border: '1px solid rgba(255, 255, 255, 0.12)', // A light border for cards in dark mode
+          border: '1px solid rgba(0, 0, 0, 0.08)',
           boxShadow: 'none',
         }
       }
     },
+     MuiPaper: {
+      styleOverrides: {
+        root: {
+           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+        }
+      }
+    }
   },
 });
 

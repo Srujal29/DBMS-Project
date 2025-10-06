@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Drawer,
@@ -10,8 +10,11 @@ import {
   Typography,
   Toolbar,
   Divider,
+  Avatar,
+  Menu,
+  MenuItem,
 } from '@mui/material';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 // Import all necessary icons
@@ -27,15 +30,40 @@ import Payment from '@mui/icons-material/Payment';
 import Campaign from '@mui/icons-material/Campaign';
 import Person from '@mui/icons-material/Person';
 import LocalHospital from '@mui/icons-material/LocalHospital';
-import MonitorHeart from '@mui/icons-material/MonitorHeart'; // 1. IMPORT THE NEW ICON
-
+import MonitorHeart from '@mui/icons-material/MonitorHeart';
+import Logout from '@mui/icons-material/Logout';
 
 const drawerWidth = 260;
 
 const Sidebar = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
 
-  // Navigation links for each user role
+  const handleMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login'); // Ensure user is redirected after logout
+    handleClose();
+  };
+
+  const getInitials = (name = '') => {
+    const nameParts = name.split(' ');
+    if (nameParts.length > 1 && nameParts[1]) {
+      return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+
   const patientLinks = [
     { text: 'Dashboard', path: '/patient/dashboard', icon: <Dashboard /> },
     { text: 'Book Appointment', path: '/patient/book-appointment', icon: <CalendarMonth /> },
@@ -64,39 +92,71 @@ const Sidebar = () => {
   const links = user?.role === 'patient' ? patientLinks : user?.role === 'doctor' ? doctorLinks : adminLinks;
 
   const drawerContent = (
-    <div>
-      <Toolbar sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '88px' }}>
-        {/* 2. REPLACE THE ICON HERE */}
-        <MonitorHeart sx={{ color: 'primary.main', fontSize: 32, mr: 1 }} />
-        <Typography variant="h5" noWrap component="div" fontWeight={700}>
-          MediTrack Pro
-        </Typography>
-      </Toolbar>
-      <Divider />
-      <List sx={{ p: 2 }}>
-        {links.map((item) => (
-          <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
-            <ListItemButton
-              component={NavLink}
-              to={item.path}
-              sx={{
-                borderRadius: '8px',
-                '&.active': {
-                  backgroundColor: 'primary.main',
-                  color: 'primary.contrastText',
-                  '& .MuiListItemIcon-root': {
+    // This Box uses flexbox to push the user profile to the bottom
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box>
+        <Toolbar sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 2, height: '88px' }}>
+          <MonitorHeart sx={{ color: 'primary.main', fontSize: 32, mr: 1 }} />
+          <Typography variant="h5" noWrap component="div" fontWeight={700}>
+            MediTrack Pro
+          </Typography>
+        </Toolbar>
+        <Divider />
+        <List sx={{ p: 2 }}>
+          {links.map((item) => (
+            <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                component={NavLink}
+                to={item.path}
+                sx={{
+                  borderRadius: '8px',
+                  '&.active': {
+                    backgroundColor: 'primary.main',
                     color: 'primary.contrastText',
+                    '& .MuiListItemIcon-root': { color: 'primary.contrastText' },
                   },
-                },
-              }}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
+                }}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Box>
+
+      {/* This Box pushes itself to the bottom */}
+      <Box sx={{ marginTop: 'auto' }}>
+        <Divider />
+        <Box sx={{ p: 2 }}>
+            <ListItemButton onClick={handleMenu} sx={{ borderRadius: '8px' }}>
+                <ListItemIcon>
+                    <Avatar sx={{ bgcolor: 'secondary.main', width: 40, height: 40 }}>
+                        {getInitials(user?.name || user?.username)}
+                    </Avatar>
+                </ListItemIcon>
+                <ListItemText 
+                    primary={<Typography variant="subtitle1" fontWeight={600}>{user?.name || user?.username}</Typography>}
+                    secondary={<Typography variant="body2" color="text.secondary">{user?.role}</Typography>}
+                />
             </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-    </div>
+            <Menu
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                transformOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <MenuItem onClick={handleLogout}>
+                    <ListItemIcon>
+                        <Logout fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Log out</ListItemText>
+                </MenuItem>
+            </Menu>
+        </Box>
+      </Box>
+    </Box>
   );
 
   return (
