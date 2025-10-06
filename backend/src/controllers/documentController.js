@@ -101,23 +101,15 @@ exports.deleteDocument = async (req, res) => {
     }
 };
 
-// NEW: Get all documents for a specific patient (for the doctor)
-exports.getPatientDocuments = async (req, res) => {
+// Get all documents for a specific patient (for the doctor)
+exports.getDocumentsForPatient = async (req, res) => {
     try {
-        // We rely on checkRole(['doctor']) to ensure authorization.
-        const { patientId } = req.params; // This is the Patient's User ID (not refId)
+        const { patientId } = req.params;
 
-        // 1. Find the patient's User object to get their internal refId
-        const patientUser = await User.findById(patientId);
-
-        if (!patientUser || patientUser.role !== 'patient') {
-            return res.status(404).json({ message: "Patient not found or invalid user role." });
-        }
-
-        // 2. Fetch documents using the patient's refId
-        const documents = await Document.find({ patient_id: patientUser.refId }).sort({ uploadDate: -1 });
+        // Fetch documents using the patient's refId (assuming patientId IS the refId)
+        const documents = await Document.find({ patient_id: patientId }).sort({ uploadDate: -1 });
         
-        // 3. Map to include the public URL
+        // Map to include the public URL
         const documentsWithUrl = documents.map(doc => mapDocumentToPublicUrl(req, doc));
 
         res.json({ documents: documentsWithUrl });
@@ -126,3 +118,4 @@ exports.getPatientDocuments = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch patient documents' });
     }
 };
+
