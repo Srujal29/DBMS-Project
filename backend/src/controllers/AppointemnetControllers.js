@@ -1,10 +1,10 @@
 const Appointment = require("../models/Appointemnet");
 const User = require("../models/User");
 const mongoose = require("mongoose");
-const Billing = require("../models/Biling");
+const Billing = require("../models/Biling"); 
 const MedicalRecord = require("../models/medicalReport");
 
-// Patient books appointment
+// Patient books appointment, status defaults to 'pending_approval'
 exports.bookAppointment = async (req, res) => {
   try {
     const { doctorId, date, time, reason } = req.body;
@@ -33,7 +33,7 @@ exports.bookAppointment = async (req, res) => {
   }
 };
 
-// Doctor gets appointments (NOW INCLUDES INVOICE AND RECORD INFO)
+// Doctor gets their list of appointments
 exports.getDoctorAppointments = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -41,24 +41,19 @@ exports.getDoctorAppointments = async (req, res) => {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    // Get the doctor's appointments and populate patient info
     const appointments = await Appointment.find({ doctor_id: user.refId })
       .populate("patient_id", "name age gender contact")
-      .lean(); // Use .lean() for better performance
+      .lean();
 
-    // For each appointment, check for related records and invoices
     const appointmentsWithDetails = await Promise.all(
       appointments.map(async (app) => {
-        // Check if an invoice exists for this appointment
         const invoice = await Billing.findOne({ appointment_id: app._id }).lean();
-
-        // Check if a medical record exists for this appointment
         const medicalRecordExists = await MedicalRecord.exists({ appointment_id: app._id });
 
         return {
           ...app,
-          invoice: invoice, // Attach the full invoice object if found, otherwise null
-          hasMedicalRecord: !!medicalRecordExists, // Attach a true/false flag
+          invoice: invoice, 
+          hasMedicalRecord: !!medicalRecordExists,
         };
       })
     );
@@ -71,51 +66,11 @@ exports.getDoctorAppointments = async (req, res) => {
 };
 
 
-// Doctor updates appointment status (generic update)
-exports.updateAppointmentStatus = async (req, res) => {
-  try {
-    const { appointmentId } = req.params;
-    const { status } = req.body;
-    const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
-
-    let appointment;
-    const query = { _id: appointmentId };
-
-    // Find the appointment based on the user's role
-    if (user.role === 'doctor') {
-      query.doctor_id = user.refId;
-    } else if (user.role === 'patient') {
-      query.patient_id = user.refId;
-      // Add a security rule: patients can ONLY cancel appointments
-      if (status !== 'cancelled') {
-        return res.status(403).json({ message: "Patients are only permitted to cancel appointments." });
-      }
-    }
-
-    appointment = await Appointment.findOne(query);
-
-    if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found or you are not authorized to modify it." });
-    }
-
-    appointment.status = status;
-    await appointment.save();
-
-    res.json({ message: "Appointment status updated", appointment });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
 // Doctor approves or declines an appointment request
 exports.manageAppointmentRequest = async (req, res) => {
   try {
     const { appointmentId } = req.params;
-    const { action } = req.body;
+    const { action } = req.body; 
 
     const user = await User.findById(req.user.id);
 
@@ -127,13 +82,14 @@ exports.manageAppointmentRequest = async (req, res) => {
     if (!appointment) {
       return res.status(404).json({ message: "Appointment not found or you are not authorized." });
     }
-
+    
     if (appointment.status !== 'pending_approval') {
         return res.status(400).json({ message: `This appointment is already ${appointment.status} and cannot be changed.` });
     }
 
+    // UPDATED: When a doctor approves, the appointment is now 'confirmed' directly.
     if (action === "approve") {
-      appointment.status = "pending_payment";
+      appointment.status = "confirmed";
     } else if (action === "decline") {
       appointment.status = "declined";
     } else {
@@ -149,7 +105,43 @@ exports.manageAppointmentRequest = async (req, res) => {
   }
 };
 
-// Patient gets their own appointments
+
+// Doctor or Patient updates an appointment status (e.g., to 'completed' or 'cancelled')
+exports.updateAppointmentStatus = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const { status } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!user) return res.status(403).json({ message: "Unauthorized" });
+
+    let query = { _id: appointmentId };
+    if (user.role === 'doctor') {
+      query.doctor_id = user.refId;
+    } else if (user.role === 'patient') {
+      query.patient_id = user.refId;
+      if (status !== 'cancelled') {
+        return res.status(403).json({ message: "Patients are only permitted to cancel appointments." });
+      }
+    }
+
+    const appointment = await Appointment.findOne(query);
+
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found or you are not authorized to modify it." });
+    }
+
+    appointment.status = status;
+    await appointment.save();
+
+    res.json({ message: "Appointment status updated", appointment });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+// Patient gets their own appointments (includes billing info)
 exports.getPatientAppointments = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -159,65 +151,38 @@ exports.getPatientAppointments = async (req, res) => {
 
     const appointments = await Appointment.find({ patient_id: user.refId })
       .populate("doctor_id", "name specialization")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    res.json({ appointments });
+    const appointmentsWithBilling = await Promise.all(
+      appointments.map(async (app) => {
+        const bill = await Billing.findOne({ appointment_id: app._id }).lean();
+        return { ...app, billing: bill };
+      })
+    );
+    res.json({ appointments: appointmentsWithBilling });
   } catch (err) {
-    console.error("GET PATIENT APPOINTMENTS ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
-// Patient confirms payment for an appointment
-exports.confirmPayment = async (req, res) => {
-    try {
-        const { appointmentId } = req.params;
-        const user = await User.findById(req.user.id);
-
-        const appointment = await Appointment.findOne({
-            _id: appointmentId,
-            patient_id: user.refId,
-        });
-
-        if (!appointment) {
-            return res.status(404).json({ message: "Appointment not found." });
-        }
-
-        if (appointment.status !== 'pending_payment') {
-            return res.status(400).json({ message: `Appointment is not awaiting payment. Current status: ${appointment.status}` });
-        }
-
-        appointment.status = 'confirmed';
-        await appointment.save();
-
-        res.json({ message: 'Payment confirmed. Your appointment is booked!', appointment });
-
-    } catch (err) {
-        console.error("CONFIRM PAYMENT ERROR:", err);
-        res.status(500).json({ error: "An unexpected error occurred." });
-    }
-};
-
-// NEW FUNCTION: Get a single appointment by its ID
+// Get a single appointment by its ID
 exports.getAppointmentById = async (req, res) => {
   try {
     const { appointmentId } = req.params;
     const appointment = await Appointment.findById(appointmentId)
       .populate("patient_id", "name")
       .populate("doctor_id", "name");
-
     if (!appointment) {
       return res.status(404).json({ message: "Appointment not found" });
     }
-
     res.json({ appointment });
   } catch (err) {
-    console.error("GET APPOINTMENT BY ID ERROR:", err);
     res.status(500).json({ error: "An unexpected error occurred." });
   }
 };
 
-
+// Get all appointments for a specific patient (for doctors)
 exports.getAppointmentsForPatient = async (req, res) => {
   try {
     const appointments = await Appointment.find({ patient_id: req.params.patientId })
@@ -228,3 +193,4 @@ exports.getAppointmentsForPatient = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+

@@ -23,6 +23,8 @@ import {
   Cancel,
   Description,
   Receipt,
+  Pending,
+  EventAvailable,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
@@ -35,10 +37,13 @@ const DoctorDashboard = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [tabValue, setTabValue] = useState(0);
+  
+  // A single dialog for all confirmation actions
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
-    appointmentId: null,
-    action: null,
+    title: '',
+    description: '',
+    onConfirm: () => {},
   });
 
   useEffect(() => {
@@ -49,8 +54,7 @@ const DoctorDashboard = () => {
     try {
       setLoading(true);
       const response = await api.get('/appointment/my-appointments');
-      // FIX: Access the .appointments array from the response object
-      setAppointments(response.data.appointments);
+      setAppointments(response.data.appointments || []);
       setError('');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load appointments');
@@ -62,237 +66,138 @@ const DoctorDashboard = () => {
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
-
-  const openConfirmDialog = (appointmentId, action) => {
-    setConfirmDialog({
-      open: true,
-      appointmentId,
-      action,
-    });
+  
+  const handleActionConfirm = () => {
+    confirmDialog.onConfirm();
+    setConfirmDialog({ open: false, title: '', description: '', onConfirm: () => {} });
   };
 
   const closeConfirmDialog = () => {
+    setConfirmDialog({ open: false, title: '', description: '', onConfirm: () => {} });
+  }
+
+  const handleManageRequest = (appointmentId, action) => {
     setConfirmDialog({
-      open: false,
-      appointmentId: null,
-      action: null,
+        open: true,
+        title: `${action.charAt(0).toUpperCase() + action.slice(1)} Appointment`,
+        description: `Are you sure you want to ${action} this appointment request? The patient will be notified.`,
+        onConfirm: async () => {
+            try {
+              await api.put(`/appointment/manage-request/${appointmentId}`, { action });
+              setSuccess(`Appointment ${action}d successfully!`);
+              fetchAppointments();
+              setTimeout(() => setSuccess(''), 3000);
+            } catch (err) {
+              setError(err.response?.data?.message || 'Failed to manage appointment request.');
+            }
+        }
     });
   };
 
-  const handleManageRequest = async () => {
-    try {
-      const { appointmentId, action } = confirmDialog;
-      // FIX: The backend expects an 'action' field in the body, not 'status'
-      await api.put(`/appointment/manage-request/${appointmentId}`, { action });
-      setSuccess(`Appointment ${action}d successfully!`);
-      fetchAppointments();
-      closeConfirmDialog();
-      setTimeout(() => setSuccess(''), 3000);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to manage appointment');
-      closeConfirmDialog();
-    }
+  const handleUpdateStatus = (appointmentId, status) => {
+     setConfirmDialog({
+        open: true,
+        title: `Mark Appointment as ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+        description: `Are you sure you want to mark this appointment as ${status}? This action cannot be undone.`,
+        onConfirm: async () => {
+             try {
+                await api.put(`/appointment/${appointmentId}/status`, { status });
+                setSuccess(`Appointment marked as ${status} successfully!`);
+                fetchAppointments();
+                setTimeout(() => setSuccess(''), 3000);
+            } catch (err) {
+                setError(err.response?.data?.message || `Failed to mark appointment as ${status}.`);
+            }
+        }
+    });
   };
 
-  const pendingAppointments = appointments.filter(
-    (app) => app.status === 'pending_approval'
-  );
-
-  // FIX: Upcoming appointments are those that have been paid for and are 'confirmed'
-  const upcomingAppointments = appointments.filter(
-    (app) => app.status === 'confirmed'
-  );
-
-  const completedAppointments = appointments.filter(
-    (app) => app.status === 'completed'
-  );
+  const pendingAppointments = appointments.filter((app) => app.status === 'pending_approval');
+  const upcomingAppointments = appointments.filter((app) => app.status === 'confirmed');
+  const completedAppointments = appointments.filter((app) => app.status === 'completed');
 
   if (loading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '80vh',
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}><CircularProgress /></Box>;
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: 4, mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <Dashboard sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
           <Box>
-            <Typography variant="h4" fontWeight={600}>
-              Doctor Dashboard
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Manage your appointments and patients
-            </Typography>
+            <Typography variant="h4" fontWeight={600}>Doctor Dashboard</Typography>
+            <Typography variant="body2" color="text.secondary">Manage your appointments and patients</Typography>
           </Box>
         </Box>
       </Paper>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-          {error}
-        </Alert>
-      )}
-
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
-          {success}
-        </Alert>
-      )}
+      {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
       <Paper elevation={3}>
-        <Tabs
-          value={tabValue}
-          onChange={handleTabChange}
-          variant="fullWidth"
-          sx={{ borderBottom: 1, borderColor: 'divider' }}
-        >
-          <Tab
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                Pending Approval
-                <Chip label={pendingAppointments.length} size="small" color="warning" />
-              </Box>
-            }
-          />
-          <Tab
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                Upcoming
-                <Chip label={upcomingAppointments.length} size="small" color="primary" />
-              </Box>
-            }
-          />
-          <Tab
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                Completed
-                <Chip label={completedAppointments.length} size="small" color="success" />
-              </Box>
-            }
-          />
+        <Tabs value={tabValue} onChange={handleTabChange} variant="fullWidth" sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tab label={<Box>Pending Approval <Chip label={pendingAppointments.length} size="small" color="warning" /></Box>} />
+          <Tab label={<Box>Upcoming <Chip label={upcomingAppointments.length} size="small" color="primary" /></Box>} />
+          <Tab label={<Box>Completed <Chip label={completedAppointments.length} size="small" color="success" /></Box>} />
         </Tabs>
 
         <Box sx={{ p: 3 }}>
           {tabValue === 0 && (
             <Box>
-              <Typography variant="h6" gutterBottom>
-                Appointments Awaiting Approval
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-              {pendingAppointments.length === 0 ? (
-                <Box sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="body1" color="text.secondary">
-                    No pending appointment requests
-                  </Typography>
-                </Box>
-              ) : (
+              {pendingAppointments.length === 0 ? (<Typography align="center" color="text.secondary">No pending appointment requests.</Typography>) : (
                 pendingAppointments.map((appointment) => (
                   <AppointmentCard
                     key={appointment._id}
                     appointment={appointment}
                     actionButtons={[
-                      {
-                        label: 'Approve',
-                        variant: 'contained',
-                        color: 'success',
-                        action: 'approve',
-                        icon: <CheckCircle />,
-                      },
-                      {
-                        label: 'Decline',
-                        variant: 'outlined',
-                        color: 'error',
-                        action: 'decline',
-                        icon: <Cancel />,
-                      },
+                      { label: 'Approve', variant: 'contained', color: 'success', action: 'approve', icon: <CheckCircle /> },
+                      { label: 'Decline', variant: 'outlined', color: 'error', action: 'decline', icon: <Cancel /> },
                     ]}
-                    onAction={(action, app) => openConfirmDialog(app._id, action)}
+                    onAction={(action, app) => handleManageRequest(app._id, action)}
                   />
                 ))
               )}
             </Box>
           )}
-
+          
           {tabValue === 1 && (
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Upcoming Appointments
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-              {upcomingAppointments.length === 0 ? (
-                <Box sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="body1" color="text.secondary">
-                    No upcoming appointments
-                  </Typography>
-                </Box>
-              ) : (
-                upcomingAppointments.map((appointment) => (
-                  <AppointmentCard
-                    key={appointment._id}
-                    appointment={appointment}
-                    actionButtons={[
-                      {
-                        label: 'Add/View Medical Record',
-                        variant: 'contained',
-                        color: 'primary',
-                        action: 'record',
-                        icon: <Description />,
-                      },
-                    ]}
-                    onAction={(action, app) =>
-                      navigate(`/doctor/records/${app._id}`)
-                    }
-                  />
-                ))
-              )}
-            </Box>
+             <Box>
+                {upcomingAppointments.length === 0 ? (<Typography align="center" color="text.secondary">No upcoming appointments.</Typography>) : (
+                    upcomingAppointments.map((appointment) => (
+                        <AppointmentCard 
+                            key={appointment._id} 
+                            appointment={appointment} 
+                            actionButtons={[
+                                { label: 'Add/View Record', variant: 'outlined', color: 'primary', action: 'record', icon: <Description /> },
+                                { label: 'Mark as Completed', variant: 'contained', color: 'success', action: 'complete', icon: <EventAvailable /> },
+                            ]}
+                            onAction={(action, app) => {
+                                if (action === 'record') navigate(`/doctor/records/${app._id}`);
+                                if (action === 'complete') handleUpdateStatus(app._id, 'completed');
+                            }}
+                        />
+                    ))
+                )}
+             </Box>
           )}
 
           {tabValue === 2 && (
             <Box>
-              <Typography variant="h6" gutterBottom>
-                Completed Appointments
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-              {completedAppointments.length === 0 ? (
-                <Box sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="body1" color="text.secondary">
-                    No completed appointments
-                  </Typography>
-                </Box>
-              ) : (
+              {completedAppointments.length === 0 ? (<Typography align="center" color="text.secondary">No completed appointments.</Typography>) : (
                 completedAppointments.map((appointment) => (
                   <AppointmentCard
                     key={appointment._id}
                     appointment={appointment}
                     actionButtons={
-                      // FIX: Check for the 'invoice' object, not 'billingId'
-                      !appointment.invoice
-                        ? [
-                            {
-                              label: 'Generate Invoice',
-                              variant: 'contained',
-                              color: 'secondary',
-                              action: 'invoice',
-                              icon: <Receipt />,
-                            },
-                          ]
-                        : []
+                      !appointment.invoice ? 
+                      [
+                        { label: 'Generate Invoice', variant: 'contained', color: 'secondary', action: 'invoice', icon: <Receipt /> }
+                      ] : [
+                        { label: 'Invoice Sent', variant: 'outlined', color: 'secondary', disabled: true }
+                      ]
                     }
-                    onAction={(action, app) =>
-                      navigate(`/doctor/invoice/${app._id}`)
-                    }
+                    onAction={(action, app) => navigate(`/doctor/invoice/${app._id}`)}
                   />
                 ))
               )}
@@ -301,33 +206,19 @@ const DoctorDashboard = () => {
         </Box>
       </Paper>
 
-      <Dialog open={confirmDialog.open} onClose={closeConfirmDialog}>
-        <DialogTitle>
-          {confirmDialog.action === 'approve' ? 'Approve Appointment' : 'Decline Appointment'}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {confirmDialog.action === 'approve'
-              ? 'Are you sure you want to approve this appointment? The patient will be notified to make a payment.'
-              : 'Are you sure you want to decline this appointment? The patient will be notified.'}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeConfirmDialog} color="inherit">
-            Cancel
-          </Button>
-          <Button
-            onClick={handleManageRequest}
-            color={confirmDialog.action === 'approve' ? 'success' : 'error'}
-            variant="contained"
-            autoFocus
-          >
-            {confirmDialog.action === 'approve' ? 'Approve' : 'Decline'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <Dialog open={confirmDialog.open} onClose={closeConfirmDialog}>
+            <DialogTitle>{confirmDialog.title}</DialogTitle>
+            <DialogContent>
+                <DialogContentText>{confirmDialog.description}</DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={closeConfirmDialog}>Cancel</Button>
+                <Button onClick={handleActionConfirm} autoFocus>Confirm</Button>
+            </DialogActions>
+        </Dialog>
     </Container>
   );
 };
 
 export default DoctorDashboard;
+

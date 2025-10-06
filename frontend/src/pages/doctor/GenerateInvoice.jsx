@@ -36,7 +36,8 @@ const GenerateInvoice = () => {
     try {
       setLoading(true);
       const response = await api.get(`/appointment/${appointmentId}`);
-      setAppointment(response.data);
+      // CORRECTED: The backend sends { appointment: {...} }, so we must unwrap it.
+      setAppointment(response.data.appointment);
       setError('');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load appointment details');
@@ -51,7 +52,7 @@ const GenerateInvoice = () => {
     setSuccess('');
 
     if (!amount || parseFloat(amount) <= 0) {
-      setError('Please enter a valid amount');
+      setError('Please enter a valid positive amount');
       return;
     }
 
@@ -90,7 +91,7 @@ const GenerateInvoice = () => {
   if (!appointment) {
     return (
       <Container maxWidth="md" sx={{ py: 4 }}>
-        <Alert severity="error">Appointment not found</Alert>
+        <Alert severity="error">{error || 'Appointment not found'}</Alert>
       </Container>
     );
   }
@@ -120,7 +121,7 @@ const GenerateInvoice = () => {
 
         <Divider sx={{ mb: 3 }} />
 
-        <Card variant="outlined" sx={{ mb: 3, bgcolor: '#f5f5f5' }}>
+        <Card variant="outlined" sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="subtitle2" color="primary" gutterBottom>
               Appointment Summary
@@ -131,7 +132,7 @@ const GenerateInvoice = () => {
                   Patient Name
                 </Typography>
                 <Typography variant="body1" fontWeight={500}>
-                  {appointment.patientId?.name}
+                  {appointment.patient_id?.name}
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -187,7 +188,7 @@ const GenerateInvoice = () => {
             }}
             required
             inputProps={{
-              min: 0,
+              min: 0.01,
               step: 0.01,
             }}
             InputProps={{
@@ -201,18 +202,8 @@ const GenerateInvoice = () => {
             sx={{ mb: 3 }}
           />
 
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
-              type="submit"
-              variant="contained"
-              size="large"
-              fullWidth
-              disabled={submitting}
-              startIcon={<Save />}
-            >
-              {submitting ? 'Generating...' : 'Generate Invoice'}
-            </Button>
-            <Button
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+             <Button
               variant="outlined"
               size="large"
               onClick={() => navigate('/doctor/dashboard')}
@@ -220,21 +211,22 @@ const GenerateInvoice = () => {
             >
               Cancel
             </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              disabled={submitting}
+              startIcon={<Save />}
+            >
+              {submitting ? 'Generating...' : 'Generate Invoice'}
+            </Button>
           </Box>
         </form>
 
-        <Box sx={{ mt: 4, p: 2, bgcolor: '#e3f2fd', borderRadius: 1 }}>
-          <Typography variant="caption" color="primary" fontWeight={600}>
-            Note:
-          </Typography>
-          <Typography variant="caption" display="block" color="text.secondary">
-            Once the invoice is generated, the patient will be able to view and confirm payment.
-            The appointment status will be updated to "pending_payment".
-          </Typography>
-        </Box>
       </Paper>
     </Container>
   );
 };
 
 export default GenerateInvoice;
+
