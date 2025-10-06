@@ -18,6 +18,7 @@ import {
   ListItemAvatar,
   ListItemText,
   IconButton,
+  LinearProgress,
 } from '@mui/material';
 import {
   Phone,
@@ -29,10 +30,60 @@ import {
   CheckCircle,
   InsertDriveFile,
   Visibility,
+  Warning,
+  HealthAndSafety,
+  Favorite,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import AppointmentCard from '../../components/AppointmentCard';
+
+// UPDATED: RiskScoreDisplay component is now even more compact
+const RiskScoreDisplay = ({ riskData }) => {
+    const getRiskColor = (level) => {
+        if (level === 'High') return 'error';
+        if (level === 'Moderate') return 'warning';
+        return 'success';
+    };
+
+    return (
+        <Card sx={{ mb: 3 }} variant="outlined">
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>AI Patient Risk Assessment</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1.5 }}>
+                     {/* Reduced font size further */}
+                     <Typography variant="h5" fontWeight={700} color={`${getRiskColor(riskData.riskLevel)}.main`}>
+                        {riskData.riskScore}
+                    </Typography>
+                    <Box sx={{ width: '100%' }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between'}}>
+                             <Typography variant="body2">Risk Level:</Typography>
+                             <Chip icon={riskData.riskLevel === 'High' ? <Warning/> : <HealthAndSafety/>} label={riskData.riskLevel} color={getRiskColor(riskData.riskLevel)} size="small" />
+                        </Box>
+                        <LinearProgress variant="determinate" value={riskData.riskScore} color={getRiskColor(riskData.riskLevel)} sx={{ height: 8, borderRadius: 5 }}/>
+                    </Box>
+                </Box>
+                <Alert severity={getRiskColor(riskData.riskLevel)} icon={<Favorite fontSize="small" />} sx={{ p: 1, mb: 1.5, alignItems: 'center' }}>
+                    <Box>
+                        <Typography variant="caption" fontWeight="bold" display="block">AI Recommendation:</Typography>
+                        <Typography variant="caption">{riskData.recommendation}</Typography>
+                    </Box>
+                </Alert>
+                 <Box>
+                    <Typography variant="caption" fontWeight="bold">Contributing Factors:</Typography>
+                    <List dense sx={{p:0}}>
+                        {riskData.factors.map((factor, index) => (
+                            <ListItem key={index} sx={{ py: 0, pl: 2 }}>
+                                <ListItemText primary={<Typography variant="caption">&bull; {factor}</Typography>} />
+                            </ListItem>
+                        ))}
+                    </List>
+                </Box>
+            </CardContent>
+        </Card>
+    );
+};
+
 
 const PatientDetail = () => {
   const { patientId } = useParams();
@@ -40,7 +91,8 @@ const PatientDetail = () => {
   const [patient, setPatient] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [medicalRecords, setMedicalRecords] = useState([]);
-  const [documents, setDocuments] = useState([]); // State for patient documents
+  const [documents, setDocuments] = useState([]);
+  const [riskData, setRiskData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -49,18 +101,19 @@ const PatientDetail = () => {
   const fetchPatientDetails = async () => {
     try {
       setLoading(true);
-      // Fetch all patient-related data concurrently
-      const [patientRes, appointmentsRes, recordsRes, documentsRes] = await Promise.all([
+      const [patientRes, appointmentsRes, recordsRes, documentsRes, riskRes] = await Promise.all([
         api.get(`/patient/${patientId}`),
         api.get(`/appointment/patient/${patientId}`),
         api.get(`/medical-record/patient/${patientId}`),
-        api.get(`/patient/${patientId}/documents`), // Fetch patient documents
+        api.get(`/patient/${patientId}/documents`),
+        api.get(`/ai/patient-risk-score/${patientId}`),
       ]);
 
       setPatient(patientRes.data.patient);
       setAppointments(appointmentsRes.data.appointments);
       setMedicalRecords(recordsRes.data.records);
-      setDocuments(documentsRes.data.documents); // Set documents state
+      setDocuments(documentsRes.data.documents);
+      setRiskData(riskRes.data);
       setError('');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load patient details');
@@ -79,7 +132,7 @@ const PatientDetail = () => {
     try {
       await api.put(`/appointment/${appointmentId}/status`, { status: 'completed' });
       setSuccess('Appointment marked as completed!');
-      fetchPatientDetails(); // Refetch all data to update the UI
+      fetchPatientDetails();
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update appointment.');
@@ -89,7 +142,6 @@ const PatientDetail = () => {
   };
   
   const handleViewDocument = (fileUrl) => {
-      // The backend now provides the full URL, so we can open it directly
       window.open(fileUrl, '_blank');
   };
 
@@ -123,6 +175,8 @@ const PatientDetail = () => {
 
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
+      
+      {riskData && <RiskScoreDisplay riskData={riskData} />}
 
       <Paper elevation={3} sx={{ p: 4, mb: 3 }}>
         <Grid container spacing={3} alignItems="center">
@@ -149,14 +203,12 @@ const PatientDetail = () => {
         </Grid>
       </Paper>
 
-      {/* UPDATED: A balanced 3-column layout where each column has equal height */}
       <Grid container spacing={3}>
-        {/* Column 1: Appointments */}
         <Grid item xs={12} lg={4}>
-            <Paper elevation={3} sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Paper elevation={3} sx={{ p: 3, display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexShrink: 0 }}><CalendarMonth color="primary" /><Typography variant="h6" fontWeight={600}>Appointment History</Typography></Box>
                 <Divider sx={{ mb: 2, flexShrink: 0 }} />
-                <Box sx={{ flexGrow: 1, overflowY: 'auto', pr: 1 }}>
+                <Box sx={{ overflowY: 'auto', pr: 1, maxHeight: '500px' }}>
                     {appointments.length === 0 ? <Box sx={{ textAlign: 'center', py: 3 }}><Typography variant="body2" color="text.secondary">No appointments found.</Typography></Box> : (
                         appointments.map((appointment) => (
                             <Box key={appointment._id} sx={{ mb: 2 }}>
@@ -168,12 +220,11 @@ const PatientDetail = () => {
             </Paper>
         </Grid>
 
-        {/* Column 2: Medical Records */}
         <Grid item xs={12} lg={4}>
-            <Paper elevation={3} sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Paper elevation={3} sx={{ p: 3, display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexShrink: 0 }}><MedicalServices color="primary" /><Typography variant="h6" fontWeight={600}>Medical Records</Typography></Box>
                 <Divider sx={{ mb: 2, flexShrink: 0 }} />
-                <Box sx={{ flexGrow: 1, overflowY: 'auto', pr: 1 }}>
+                <Box sx={{ overflowY: 'auto', pr: 1, maxHeight: '500px' }}>
                     {medicalRecords.length === 0 ? <Box sx={{ textAlign: 'center', py: 3 }}><Typography variant="body2" color="text.secondary">No medical records found.</Typography></Box> : (
                         medicalRecords.map((record) => (<Card key={record._id} sx={{ mb: 2 }}><CardContent><Typography variant="caption" color="text.secondary">{formatDate(record.createdAt)}</Typography><Typography variant="subtitle1" fontWeight={600} gutterBottom>Diagnosis</Typography><Typography variant="body2" paragraph>{record.diagnosis}</Typography><Typography variant="subtitle1" fontWeight={600} gutterBottom>Treatment</Typography><Typography variant="body2" paragraph>{record.treatment}</Typography><Typography variant="subtitle1" fontWeight={600} gutterBottom>Prescribed Medicine</Typography><Typography variant="body2">{Array.isArray(record.prescribed_medicine) ? record.prescribed_medicine.join(', ') : 'N/A'}</Typography></CardContent></Card>))
                     )}
@@ -181,13 +232,12 @@ const PatientDetail = () => {
             </Paper>
         </Grid>
         
-        {/* Column 3: Patient Documents */}
         <Grid item xs={12} lg={4}>
-            <Paper elevation={3} sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Paper elevation={3} sx={{ p: 3, display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexShrink: 0 }}><InsertDriveFile color="primary" /><Typography variant="h6" fontWeight={600}>Patient Documents</Typography></Box>
                 <Divider sx={{ mb: 2, flexShrink: 0 }} />
-                <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
-                    {documents.length === 0 ? <Box sx={{ textAlign: 'center', py: 3 }}><Typography variant="body2" color="text.secondary">No documents uploaded by this patient.</Typography></Box> : (
+                <Box sx={{ overflowY: 'auto', maxHeight: '500px' }}>
+                    {documents.length === 0 ? <Box sx={{ textAlign: 'center', py: 3 }}><Typography variant="body2" color="text.secondary">No documents uploaded.</Typography></Box> : (
                         <List>
                             {documents.map((doc) => (
                                 <ListItem key={doc._id} secondaryAction={<IconButton edge="end" aria-label="view" onClick={() => handleViewDocument(doc.fileUrl)}><Visibility /></IconButton>}>
