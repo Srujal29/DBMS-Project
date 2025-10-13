@@ -1,9 +1,9 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, CssBaseline, Box } from '@mui/material';
+import { CssBaseline, Box, Typography } from '@mui/material';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import theme from './theme';
-import Layout from './components/Layout'; // 1. Import the new Layout component
+import { CustomThemeProvider } from './context/ThemeContext';
+import Layout from './components/Layout';
 
 // --- Page Imports ---
 // Public Pages
@@ -38,28 +38,28 @@ import Analytics from './pages/admin/Analytics';
 
 
 // --- Protected Route Wrapper ---
-// This component wraps the entire layout for authenticated users.
 const ProtectedLayout = () => {
   const { isAuthenticated } = useAuth();
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  return <Layout />;
+  return <Layout />; 
 };
 
 
 // --- Main App Component ---
 function App() {
   return (
-    <ThemeProvider theme={theme}>
+    <CustomThemeProvider>
       <CssBaseline />
+      {/* The <Router> component is removed from here. It should be in your main.jsx file. */}
       <AuthProvider>
         <Routes>
           {/* Public routes render outside the main layout */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           
-          {/* All protected routes are now children of the ProtectedLayout */}
+          {/* All protected routes are now nested inside the ProtectedLayout */}
           <Route path="/" element={<ProtectedLayout />}>
             {/* Patient Routes */}
             <Route path="patient/dashboard" element={<PatientDashboard />} />
@@ -91,7 +91,7 @@ function App() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </AuthProvider>
-    </ThemeProvider>
+    </CustomThemeProvider>
   );
 }
 

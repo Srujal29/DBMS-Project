@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useThemeContext } from '../context/ThemeContext';
 
 // Import all necessary icons
 import Dashboard from '@mui/icons-material/Dashboard';
@@ -32,11 +33,14 @@ import Person from '@mui/icons-material/Person';
 import LocalHospital from '@mui/icons-material/LocalHospital';
 import MonitorHeart from '@mui/icons-material/MonitorHeart';
 import Logout from '@mui/icons-material/Logout';
+import Brightness4 from '@mui/icons-material/Brightness4';
+
 
 const drawerWidth = 260;
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
+  const { toggleTheme } = useThemeContext();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -51,7 +55,7 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login'); // Ensure user is redirected after logout
+    navigate('/login');
     handleClose();
   };
 
@@ -92,10 +96,9 @@ const Sidebar = () => {
   const links = user?.role === 'patient' ? patientLinks : user?.role === 'doctor' ? doctorLinks : adminLinks;
 
   const drawerContent = (
-    // This Box uses flexbox to push the user profile to the bottom
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Box>
-        <Toolbar sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 2, height: '88px' }}>
+        <Toolbar sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '88px' }}>
           <MonitorHeart sx={{ color: 'primary.main', fontSize: 32, mr: 1 }} />
           <Typography variant="h5" noWrap component="div" fontWeight={700}>
             MediTrack Pro
@@ -113,7 +116,9 @@ const Sidebar = () => {
                   '&.active': {
                     backgroundColor: 'primary.main',
                     color: 'primary.contrastText',
-                    '& .MuiListItemIcon-root': { color: 'primary.contrastText' },
+                    '& .MuiListItemIcon-root': {
+                      color: 'primary.contrastText',
+                    },
                   },
                 }}
               >
@@ -125,7 +130,7 @@ const Sidebar = () => {
         </List>
       </Box>
 
-      {/* This Box pushes itself to the bottom */}
+      {/* This Box pushes the user profile to the bottom */}
       <Box sx={{ marginTop: 'auto' }}>
         <Divider />
         <Box sx={{ p: 2 }}>
@@ -147,6 +152,12 @@ const Sidebar = () => {
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                 transformOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
+                <MenuItem onClick={() => { toggleTheme(); handleClose(); }}>
+                    <ListItemIcon>
+                        <Brightness4 fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Toggle Theme</ListItemText>
+                </MenuItem>
                 <MenuItem onClick={handleLogout}>
                     <ListItemIcon>
                         <Logout fontSize="small" />
